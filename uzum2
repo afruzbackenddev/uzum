@@ -1,0 +1,214 @@
+users = []
+sellers = []
+products = []
+
+PROMOS = {
+    "newuzum": 0.2,
+    "712": 0.1,
+    "721": 0.7,
+    "afruzuzum": 0.9
+}
+
+CITIES = ["toshkent", "buxoro"]
+
+class User:
+    def __init__(self, login, password, city):
+        self.login = login
+        self.password = password
+        self.city = city
+        self.history = []
+        self.cart = []
+
+class Seller:
+    def __init__(self, login, password, city):
+        self.login = login
+        self.password = password
+        self.city = city
+        self.inbox = []
+
+class Product:
+    def __init__(self, name, category, price, qty, seller, city):
+        self.name = name
+        self.category = category
+        self.base_price = price
+        self.price = int(price * 1.1)  # 10% company fee
+        self.qty = qty
+        self.seller = seller
+        self.city = city
+        self.sold = 0
+
+class Order:
+    def __init__(self, user_login, products, total, comment, hours):
+        self.user_login = user_login
+        self.products = products  # list of tuples (product, qty)
+        self.total = total
+        self.comment = comment
+        self.hours = hours
+
+    def status(self):
+        if self.hours < 2:
+            return "Tasdiqlandi"
+        elif self.hours <= 7:
+            return "Yo‘lda"
+        else:
+            return "Yetib kelayapti"
+
+# demo seller
+demo_seller = Seller("seller1", "1234", "toshkent")
+sellers.append(demo_seller)
+
+# mahsulotlar
+products.extend([
+    Product("iPhone 13", "iphone",6200000,5,demo_seller, "toshkent"),
+    Product("iPhone 13 Pro", "iphone", 8700000,5,demo_seller, "toshkent"),
+    Product("iPhone 13 Pro Max", "iphone", 9600000, 4, demo_seller, "toshkent"),
+    Product("iPhone 14", "iphone", 10200000, 6, demo_seller, "toshkent"),
+    Product("iPhone 14 Pro Max", "iphone", 11400000, 2, demo_seller, "toshkent"),
+])
+
+products.extend([
+    Product("Redmi 12", "redmi", 3200000, 10, demo_seller, "toshkent"),
+    Product("Redmi 13", "redmi", 3950000, 8, demo_seller, "toshkent"),
+    Product("Redmi Note 12", "redmi", 4100000, 12, demo_seller, "toshkent"),
+    Product("Redmi Note 13 Pro", "redmi", 5000000, 6, demo_seller, "toshkent"),
+])
+
+products.extend([
+    Product("Samsung S23", "samsung", 9800000, 5, demo_seller, "toshkent"),
+    Product("Samsung S23 Ultra", "samsung", 17600000, 3, demo_seller, "toshkent"),
+    Product("Samsung A54", "samsung", 6700000, 7, demo_seller, "toshkent"),
+    Product("Samsung A34", "samsung", 5200000, 9, demo_seller, "toshkent"),
+])
+
+# login bo'shmi tekshirish
+def login_free(login):
+    for x in users + sellers:
+        if x.login == login:
+            return False
+    return True
+
+def show_products(city=None):
+    visible = [p for p in products if (city is None or p.city == city)]
+    if not visible:
+        print(" Hech narsa topilmadi")
+        return []
+    for i, p in enumerate(visible, 1):
+        print(f"{i}. {p.name} | {p.category} | {p.price} som | Omborda: {p.qty} bor |  manzili: {p.city}")
+    return visible
+
+# auth
+def register_user():
+    login = input("Login: ")
+    if not login_free(login):
+        print(" Bu login band")
+        return
+    password = input("Parol: ")
+    city = input(f"Shahar ({'/'.join(CITIES)}): ").lower()
+    if city not in CITIES:
+        print(" Hozir bu yerda yo‘qmiz")
+        return
+    users.append(User(login, password, city))
+    print(" User yaratildi")
+
+def login_user():
+    l = input("Login: ")
+    p = input("Parol: ")
+    for u in users:
+        if u.login == l and u.password == p:
+            return u
+    print(" Xato login yoki parol")
+    return None
+
+def register_seller():
+    login = input("Seller login: ")
+    if not login_free(login):
+        print(" Login band")
+        return
+    password = input("Parol: ")
+    city = input(f"Shahar ({'/'.join(CITIES)}): ").lower()
+    if city not in CITIES:
+        print("Hozir bu yerda yo‘qmiz")
+        return
+    sellers.append(Seller(login, password, city))
+    print(" Sotuvchi qo‘shildi")
+print("1 - Naqd  2 - Karta  3 - Bo‘lib to‘lash (hozircha mavjud emas)")
+pay = input("Tanlang: ")
+
+def card_input():
+    while True:
+        card = input("Karta raqamini kiriting (9860 1201 1234 5678): ")
+        card_clean = card.replace(" ", "")
+        if card_clean.isdigit() and len(card_clean) == 16:
+            print(" Karta qabul qilindi ")
+            return card
+        else:
+            print(" Noto‘g‘ri karta raqami, qayta urinib ko‘ring")
+
+print("Uzum Face — To‘lov oynasi")
+
+if pay == "1":
+    print("Mahsulotni olgandan so‘ng to‘lov qilasiz")
+elif pay == "2":
+    card = card_input()
+    code = input("4 xonali karta kodi: ")
+    print("To‘lov qabul qilindi ")
+elif pay == "3":
+    print("Bo‘lib to‘lash hozircha mavjud emas")
+else:
+    print("Noto‘g‘ri tanlov")
+                    print("""
+1 - Mahsulotlarni ko'rish
+2 - Savatga qo'shish
+3 - Savatni ko'rish
+4 - Savatni to'lash
+5 - Buyurtmalar tarixi
+0 - Chiqish
+""")
+                    uc = input("> ")
+                    if uc == "1":
+                        show_products(u.city)
+                    elif uc == "2":
+                        add_to_cart(u)
+                    elif uc == "3":
+                        show_cart(u)
+                    elif uc == "4":
+                        checkout(u)
+                    elif uc == "5":
+                        show_history(u)
+                    elif uc == "0":
+                        break
+                    else:
+                        print("Noto‘g‘ri tanlov")
+
+        elif c == "3":
+            register_seller()
+        elif c == "4":
+            s = login_seller()
+            if s:
+                while True:
+                    print("""
+1 - Mahsulot qo'shish
+2 - Inboxni ko'rish
+0 - Chiqish
+""")
+                    sc = input("> ")
+                    if sc == "1":
+                        add_product(s)
+                    elif sc == "2":
+                        if not s.inbox:
+                            print("Inbox bo‘sh")
+                        else:
+                            for i, o in enumerate(s.inbox, 1):
+                                items = ", ".join([f"{p.name} x{qty}" for p, qty in o.products])
+                                print(f"{i}. {items} | Total: {o.total}$ | Foydalanuvchi: {o.user_login} | Holat: {o.status()}")
+                    elif sc == "0":
+                        break
+                    else:
+                        print("Noto‘g‘ri tanlov")
+        elif c == "0":
+            break
+        else:
+            print("Noto‘g‘ri tanlov")
+except KeyboardInterrupt:
+    print("\nDastur to‘xtatildi")
+ 
